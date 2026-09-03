@@ -30,17 +30,8 @@
           <input id="password" v-model="form.password" type="password" placeholder="Enter password" required />
         </div>
 
-        <div class="field">
-          <label for="confirm">Confirm Password</label>
-          <input id="confirm" v-model="form.confirm" type="password" placeholder="Re-enter password" required />
-          <span class="error" v-if="form.confirm && form.confirm !== form.password">Passwords do not match.</span>
-        </div>
-
-        <button
-          type="submit"
-          class="btn-submit"
-          :disabled="isLoading || form.password !== form.confirm"
-        >
+        <p class="error-msg" v-if="error">{{ error }}</p>
+        <button type="submit" class="btn-submit" :disabled="isLoading">
           {{ isLoading ? 'Registering...' : 'Register' }}
         </button>
       </form>
@@ -55,23 +46,47 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const isLoading = ref(false)
+const error = ref('')
 const form = ref({
   firstName: '',
   lastName: '',
   email: '',
   studentId: '',
   password: '',
-  confirm: '',
 })
 
 async function handleRegister() {
-  if (form.value.password !== form.value.confirm) return
+  error.value = ''
   isLoading.value = true
-  await new Promise(r => setTimeout(r, 800))
-  isLoading.value = false
-  alert('Register will connect to the backend.')
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        name: form.value.firstName + ' ' + form.value.lastName,
+        email: form.value.email,
+        student_id: form.value.studentId,
+        password: form.value.password,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      error.value = data.message || Object.values(data.errors || {}).flat().join(', ') || 'Registration failed'
+      return
+    }
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    alert('Registration successful! Welcome ' + data.user.name)
+    router.push('/login')
+  } catch (e) {
+    error.value = 'Could not connect to backend.'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
@@ -167,6 +182,13 @@ h2 {
   font-size: 13px;
   color: #555;
   margin-top: 18px;
+}
+
+.error-msg {
+  color: #c0392b;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
 .switch-text a, .back-link a {

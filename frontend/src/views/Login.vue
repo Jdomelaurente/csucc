@@ -15,6 +15,7 @@
           <input id="password" v-model="form.password" type="password" placeholder="Enter your password" required />
         </div>
 
+        <p class="error-msg" v-if="error">{{ error }}</p>
         <button type="submit" class="btn-submit" :disabled="isLoading">
           {{ isLoading ? 'Logging in...' : 'Login' }}
         </button>
@@ -30,15 +31,35 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const isLoading = ref(false)
+const error = ref('')
 const form = ref({ email: '', password: '' })
 
 async function handleLogin() {
+  error.value = ''
   isLoading.value = true
-  await new Promise(r => setTimeout(r, 800))
-  isLoading.value = false
-  alert('Login will connect to the backend.')
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(form.value),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      error.value = data.message || data.errors?.email?.[0] || 'Login failed'
+      return
+    }
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    router.push('/dashboard')
+  } catch (e) {
+    error.value = 'Could not connect to backend.'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
@@ -127,6 +148,13 @@ h2 {
   font-size: 13px;
   color: #555;
   margin-top: 18px;
+}
+
+.error-msg {
+  color: #c0392b;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
 .switch-text a, .back-link a {

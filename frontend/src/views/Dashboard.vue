@@ -2,22 +2,23 @@
   <div class="page">
     <header class="header">
       <div class="container header-inner">
-        <div class="logo">CSUCC</div>
+        <div class="logo">CSUCC Dashboard</div>
         <nav class="nav">
-          <router-link to="/login">Login</router-link>
-          <router-link to="/register" class="btn-primary">Register</router-link>
+          <span class="user-name">Welcome, {{ user?.name }}</span>
+          <button @click="logout" class="btn-outline">Logout</button>
         </nav>
       </div>
     </header>
 
     <main class="main-content">
-      <section class="hero container">
-        <h1>Caraga State University</h1>
-        <p>An online platform for students and faculty to manage courses, schedules, and campus resources.</p>
-        <div class="hero-btns">
+      <section class="dashboard-content container">
+        <h1>Dashboard</h1>
+        <p>You have successfully logged in.</p>
+        <div class="card">
+          <p><strong>Name:</strong> {{ user?.name }}</p>
+          <p><strong>Email:</strong> {{ user?.email }}</p>
         </div>
       </section>
-
     </main>
 
     <footer class="footer">
@@ -29,12 +30,26 @@
 </template>
 
 <script setup>
-const features = [
-  { title: 'Course Enrollment', desc: 'Browse and enroll in available courses each semester.' },
-  { title: 'Class Schedule', desc: 'View your weekly class schedule in one place.' },
-  { title: 'Grades', desc: 'Check your grades and academic standing anytime.' },
-  { title: 'Announcements', desc: 'Stay updated with the latest school announcements.' },
-]
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const user = ref(null)
+
+onMounted(() => {
+  const userData = localStorage.getItem('user')
+  if (!userData) {
+    router.push('/login')
+  } else {
+    user.value = JSON.parse(userData)
+  }
+})
+
+function logout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  router.push('/')
+}
 </script>
 
 <style scoped>
@@ -78,27 +93,12 @@ const features = [
   align-items: center;
   gap: 16px;
 }
-.nav a {
+.user-name {
   color: #fff;
-  text-decoration: none;
   font-size: 14px;
 }
-.nav a:hover { text-decoration: underline; }
 
 /* Buttons */
-.btn-primary {
-  background: #1a4a8a;
-  color: #fff;
-  padding: 7px 16px;
-  border-radius: 4px;
-  text-decoration: none;
-  font-size: 14px;
-  border: 1px solid #1a4a8a;
-  cursor: pointer;
-  display: inline-block;
-}
-.btn-primary:hover { background: #153d73; }
-
 .btn-outline {
   background: #fff;
   color: #1a4a8a;
@@ -108,6 +108,7 @@ const features = [
   font-size: 14px;
   border: 1px solid #1a4a8a;
   display: inline-block;
+  cursor: pointer;
 }
 .btn-outline:hover { background: #f0f4ff; }
 
@@ -119,57 +120,37 @@ const features = [
   justify-content: center;
 }
 
-/* Hero */
-.hero {
+/* Dashboard Content */
+.dashboard-content {
   padding: 60px 20px;
   text-align: center;
+  width: 100%;
 }
-.hero h1 {
+.dashboard-content h1 {
   font-size: 28px;
   margin-bottom: 12px;
   color: #1a4a8a;
 }
-.hero p {
+.dashboard-content p {
   color: #555;
-  max-width: 540px;
-  margin: 0 auto 24px;
-  line-height: 1.6;
-}
-.hero-btns {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
+  margin-bottom: 24px;
 }
 
-/* Features */
-.features {
-  padding: 48px 20px;
-}
-.features h2 {
-  font-size: 20px;
-  margin-bottom: 24px;
-  color: #1a4a8a;
-}
-.features-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-.feature {
+.card {
+  background: #fafafa;
   border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 18px;
-  background: #fafafa;
+  padding: 24px;
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: left;
 }
-.feature strong {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 15px;
+.card p {
+  margin-bottom: 12px;
+  color: #333;
 }
-.feature p {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.5;
+.card p:last-child {
+  margin-bottom: 0;
 }
 
 /* Footer */
