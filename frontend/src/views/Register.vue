@@ -30,6 +30,14 @@
           <input id="password" v-model="form.password" type="password" placeholder="Enter password" required />
         </div>
 
+        <div class="field">
+          <label for="role">Role</label>
+          <select id="role" v-model="form.role" required>
+            <option value="client">Client</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
         <p class="error-msg" v-if="error">{{ error }}</p>
         <button type="submit" class="btn-submit" :disabled="isLoading">
           {{ isLoading ? 'Registering...' : 'Register' }}
@@ -57,6 +65,7 @@ const form = ref({
   email: '',
   studentId: '',
   password: '',
+  role: 'client',
 })
 
 async function handleRegister() {
@@ -71,6 +80,7 @@ async function handleRegister() {
         email: form.value.email,
         student_id: form.value.studentId,
         password: form.value.password,
+        role: form.value.role,
       }),
     })
     const data = await res.json()
@@ -140,7 +150,7 @@ h2 {
   color: #444;
 }
 
-.field input {
+.field input, .field select {
   width: 100%;
   padding: 8px 10px;
   font-size: 14px;
@@ -148,9 +158,10 @@ h2 {
   border-radius: 4px;
   outline: none;
   font-family: Arial, sans-serif;
+  background-color: #fff;
 }
 
-.field input:focus {
+.field input:focus, .field select:focus {
   border-color: #1a4a8a;
 }
 

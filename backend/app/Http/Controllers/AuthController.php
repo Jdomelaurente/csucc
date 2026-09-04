@@ -10,6 +10,33 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function update(Request $request)
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'student_id' => 'required',
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user,
+        ]);
+    }
+
+    public function destroy(Request $request)
+    {
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted successfully']);
+    }
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -17,6 +44,7 @@ class AuthController extends Controller
             'email' => 'required',
             'student_id' => 'required',
             'password' => 'required',
+            'role' => 'nullable|in:client,admin'
         ]);
 
         $user = User::create([
@@ -24,6 +52,7 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'student_id' => $validated['student_id'],
             'password' => Hash::make($validated['password']),
+            'role' => $validated['role'] ?? 'client'
         ]);
 
         $token = $user->createToken('auth-token')->plainTextToken;
